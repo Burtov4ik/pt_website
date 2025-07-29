@@ -120,33 +120,54 @@
 
 <?php
 require_once('db.php');
-$link = mysqli_connect('127.0.0.1', 'root', 'kali', 'first');
+$link = mysqli_connect('db', 'root', 'kali', 'first');
 
 if (isset($_POST['submit'])) {
-    
-    $title = $_POST['title'];
-    $main_text = $_POST['text'];
-    
-    if (!$title || !$main_text) die ("Заполните все поля");
+    $title = mysqli_real_escape_string($link, $_POST['title']);
+    $main_text = mysqli_real_escape_string($link, $_POST['text']);
 
-    $sql = "INSERT INTO posts (title, main_text) VALUES ('$title', '$main_text')";
+    if (!$title || !$main_text) {
+        die("Заполните все поля");
+    }
 
-    if (!mysqli_query($link, $sql)) die ("Не удалось добавить пост");
+    $image_path = '';
 
-    if(!empty($_FILES["file"]))
-    {
-        if (((@$_FILES["file"]["type"] == "image/gif") || (@$_FILES["file"]["type"] == "image/jpeg")
-        || (@$_FILES["file"]["type"] == "image/jpg") || (@$_FILES["file"]["type"] == "image/pjpeg")
-        || (@$_FILES["file"]["type"] == "image/x-png") || (@$_FILES["file"]["type"] == "image/png"))
-        && (@$_FILES["file"]["size"] < 102400))
-        {
-            move_uploaded_file($_FILES["file"]["tmp_name"], "upload/" . $_FILES["file"]["name"]);
-            echo "Load in:  " . "upload/" . $_FILES["file"]["name"];
+    if (!empty($_FILES["file"]["name"])) {
+        $file_type = $_FILES["file"]["type"];
+        $file_size = $_FILES["file"]["size"];
+        $allowed_types = [
+            "image/gif", "image/jpeg", "image/jpg",
+            "image/pjpeg", "image/x-png", "image/png"
+        ];
+
+        if (in_array($file_type, $allowed_types) && $file_size < 10240000) {
+            // Убедимся, что папка существует
+            $upload_dir = 'upload/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0777, true);
+            }
+
+            $file_name = time() . "_" . basename($_FILES["file"]["name"]);
+            $targetPath = $upload_dir . $file_name;
+
+            if (move_uploaded_file($_FILES['file']['tmp_name'], $targetPath)) {
+                echo "Файл загружен успешно.<br>";
+                $image_path = $targetPath;
+            } else {
+                echo "Ошибка: Загрузка не удалась. Проверьте права на запись в папку 'upload/'.<br>";
+            }
+        } else {
+            echo "Неверный формат файла или превышен размер (макс. 10 МБ).<br>";
         }
-        else
-        {
-            echo "upload failed!";
-        }
+    } else {
+        echo "Файл не загружен, пост будет сохранен без изображения.<br>";
+    }
+    
+    $sql = "INSERT INTO posts (title, main_text, image_path) VALUES ('$title', '$main_text', '$image_path')";
+    if (!mysqli_query($link, $sql)) {
+        die("Не удалось добавить пост");
     }
 }
+
+mysqli_close($link);
 ?>
