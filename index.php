@@ -21,7 +21,7 @@
             <a href="/registration.php">Зарегистрируйтесь</a>или<a href="/login.php">войдите</a>, чтобы просматривать контент!
         <?php
         } else{
-            $link = mysqli_connect('127.0.0.1', 'root', 'kali', 'first');
+            $link = mysqli_connect('db', 'root', 'kali', 'first');
             $sql = "SELECT * FROM posts";
             $res = mysqli_query($link, $sql);
             if (mysqli_num_rows($res) >  0) {
