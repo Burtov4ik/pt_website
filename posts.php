@@ -1,5 +1,5 @@
 <?php
-$link = mysqli_connect('127.0.0.1', 'root', 'kali', 'first');
+$link = mysqli_connect('db', 'root', 'kali', 'first');
 
 $id = $_GET['id'];
 $sql = "SELECT * FROM posts WHERE id=$id";
@@ -8,6 +8,7 @@ $res = mysqli_query($link, $sql);
 $rows = mysqli_fetch_array($res);
 $title = $rows['title'];
 $main_text = $rows['main_text'];
+$image_path = $rows['image_path'];
 ?>
 
 <!DOCTYPE html>
@@ -24,8 +25,11 @@ $main_text = $rows['main_text'];
 </head>
 <body>
 <?php
-        echo "<h1>$title</h1>";
-        echo "<p>$main_text</p>";
-        ?>
+    echo "<h1>$title</h1>";
+    if (!empty($image_path)) {
+        echo "<img src='$image_path' alt='Изображение' class='img-fluid mb-3'>";
+    }
+    echo "<p>$main_text</p>";
+?>
 </body>
 </html>
